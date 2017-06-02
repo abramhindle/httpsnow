@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Magic!</title>
+  </head>
+  <body>
+    <div>
+      <video id="video">
+      </video>
+      <video id="outvideo">
+      </video>
+    </div>
+    <script>
+/* Some ideas were taken from
+
+ * Mozilla https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+
+*/
+var constraints = {
+    video: {
+        frameRate: { ideal: 15, max: 30 },
+        width: { min: 240, ideal: 320 },
+        height: { min: 240, ideal: 240 },
+        facingMode: "user" 
+    }
+}
+var promise = navigator.mediaDevices.getUserMedia(constraints);
+promise.then(function(mediaStream) {
+    var video = document.querySelector('video');
+    video.srcObject = mediaStream;
+    video.onloadedmetadata = function(e) {
+        video.play();
+    };
+})
+.catch(function(err) { console.log(err.name + ": " + err.message); });
+    </script>        
+  </body>
+</html>
