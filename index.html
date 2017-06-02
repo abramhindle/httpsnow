@@ -14,7 +14,8 @@
 #sensitivity {
     position: absolute;
 }
-    </style>
+</style>
+    <script src="./www.charlie-roberts.com/gibberish/build/gibberish.js"></script>
   </head>
     <body>
     <span id="runsum"></span>
@@ -41,7 +42,7 @@ var constraints = {
         facingMode: "user" 
     }
 };
-/*
+
 var promise = navigator.mediaDevices.getUserMedia(constraints);
 promise.then(function(mediaStream) {
     var video = document.createElement("video");
@@ -49,24 +50,27 @@ promise.then(function(mediaStream) {
     video.srcObject = mediaStream;
     video.onloadedmetadata = function(e) {
         video.play();
+        video.volume = 0.0;
         startFrameDifferencer(video);
     };
 })
 .catch(function(err) { console.log(err.name + ": " + err.message); });
-*/
+
 
 function playVideo() {
     var video = document.createElement("video");
     video.src = 'demo.mp4';
+    video.volume = 0.0;
     video.loop = true;
     video.onloadedmetadata = function(e) {
         video.play();
+        //video.volume = 0.0;
         startFrameDifferencer(video);
     };
     video.autoPlay = true;
 }
 
-playVideo();
+//playVideo();
 
 var dinterval;
 
@@ -115,7 +119,7 @@ function startFrameDifferencer(video) {
         if (callBack != null) {
             callBack(runsum,od);
         }
-    },1000/30.0);
+    },1000/15.0);
 }
 
 // Boxes cuts the area into 64 boxes and then uses the callback
@@ -146,9 +150,6 @@ function printBoxes(runsum,od,b) {
     }
 }
 
-callBack = function(runsum,od) {
-    boxes(runsum,od,printBoxes);
-};
 
 window.addEventListener("load", function() {
     console.log("onload");
@@ -157,7 +158,35 @@ window.addEventListener("load", function() {
         trigger = this.value;
         console.log(trigger);
     });
+
+    Gibberish.init();
+    Gibberish.Time.export();
+    Gibberish.Binops.export();
+    
+    var polySynth = new Gibberish.Synth2({ maxVoices:4, waveform:'PWM', attack:ms(1), decay:ms(500) }).connect();
+    
+    //var polySynth = new Gibberish.PolySynth({ 
+    //    attack: 20,
+    //    decay: ms(1000),
+    //    pulsewidth: Add( .5, new Gibberish.Sine(.1, .45) ),
+    //}).connect();
+    
+    var synthNote = function(runsum,od,b) {
+        for (var i = 0 ; i < b.length; i++) {
+            if (b[i] >= trigger) {
+                polySynth.note(40+i*100);
+            }
+        }
+    };
+    
+    callBack = function(runsum,od) {
+        boxes(runsum,od,synthNote);
+    };
+
+    
 });
+
+
 
     </script>        
   </body>
