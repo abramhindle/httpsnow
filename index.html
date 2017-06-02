@@ -2,11 +2,17 @@
 <html>
   <head>
     <title>Magic!</title>
+    <style>
+#canvas {
+        width: 100%;
+        height: 100%;
+}
+    </style>
   </head>
   <body>
     <div>
       <canvas id="canvas">
-    </canvas>
+      </canvas>
     </div>
     <script>
 /* Some ideas were taken from
@@ -36,29 +42,35 @@ promise.then(function(mediaStream) {
 
 var dinterval;
 
-var hiddenCanvas = document.createElement("canvas");
+var currentFrame = document.createElement("canvas");
+var lastFrame    = document.createElement("canvas");
 
 function startFrameDifferencer(video) {
     //var video = document.querySelector('video');
     var canvas = document.querySelector('canvas');
     var context = canvas.getContext('2d');
-    var vcontext = hiddenCanvas.getContext('2d');
+    var currentContext = currentFrame.getContext('2d');
+    var lastContext = lastFrame.getContext('2d');
     dinterval = window.setInterval(function() {
-        context.drawImage(video,0,0,320,240);
+        currentContext.drawImage(video,0,0,320,240);
         var outpix = context.getImageData(0,0,320,240);
-        //var inppix =vcontext.getImageData(0,0,320,240);
-        //var id = inppix.data;
+        var current = currentContext.getImageData(0,0,320,240);
+        var last    = lastContext.getImageData(0,0,320,240);
+        var cd = current.data;
+        var ld = last.data;
         var od = outpix.data;
+        var mix = 0.5;
+        var imix = 1.0 - mix;
         for (var i = 0 ; i < od.length ; i+=4) {
-            od[i+0] = od[i+0] * 8 % 255;
-            od[i+1] = od[i+1] * 8 % 255;
-            od[i+2] = od[i+2] * 8 % 255;
-            od[i+3] = od[i+3];
+            od[i+0] = (od[i+0]*mix + imix*  ( cd[i+0] - ld[i+0] )) % 255; 
+            od[i+1] = (od[i+0]*mix + imix * ( cd[i+1] - ld[i+1] )) % 255; 
+            od[i+2] = (od[i+0]*mix + imix * ( cd[i+2] - ld[i+2] )) % 255; 
+            od[i+3] = cd[i+3];
         }
         outpix.data = od;
+        lastContext.putImageData(current,0,0);
         context.putImageData(outpix,0,0);
     },1000/30.0);
-
 }
 
     </script>        
