@@ -5,10 +5,8 @@
   </head>
   <body>
     <div>
-      <video id="video">
-      </video>
-      <video id="outvideo">
-      </video>
+      <canvas id="canvas">
+    </canvas>
     </div>
     <script>
 /* Some ideas were taken from
@@ -26,13 +24,43 @@ var constraints = {
 }
 var promise = navigator.mediaDevices.getUserMedia(constraints);
 promise.then(function(mediaStream) {
-    var video = document.querySelector('video');
+    var video = document.createElement("video");
+    //var video = document.querySelector('video');
     video.srcObject = mediaStream;
     video.onloadedmetadata = function(e) {
         video.play();
+        startFrameDifferencer(video);
     };
 })
 .catch(function(err) { console.log(err.name + ": " + err.message); });
+
+var dinterval;
+
+var hiddenCanvas = document.createElement("canvas");
+
+function startFrameDifferencer(video) {
+    //var video = document.querySelector('video');
+    var canvas = document.querySelector('canvas');
+    var context = canvas.getContext('2d');
+    var vcontext = hiddenCanvas.getContext('2d');
+    dinterval = window.setInterval(function() {
+        context.drawImage(video,0,0,320,240);
+        var outpix = context.getImageData(0,0,320,240);
+        //var inppix =vcontext.getImageData(0,0,320,240);
+        //var id = inppix.data;
+        var od = outpix.data;
+        for (var i = 0 ; i < od.length ; i+=4) {
+            od[i+0] = od[i+0] * 8 % 255;
+            od[i+1] = od[i+1] * 8 % 255;
+            od[i+2] = od[i+2] * 8 % 255;
+            od[i+3] = od[i+3];
+        }
+        outpix.data = od;
+        context.putImageData(outpix,0,0);
+    },1000/30.0);
+
+}
+
     </script>        
   </body>
 </html>
