@@ -7,9 +7,18 @@
         width: 100%;
         height: 100%;
 }
+#runsum {
+    color: white;
+    position: absolute;
+}
+#sensitivity {
+    position: absolute;
+}
     </style>
   </head>
-  <body>
+    <body>
+    <span id="runsum"></span>
+    <input type="range" id="sensitivity" min="100" max="200000"/>
     <div>
       <canvas id="canvas">
       </canvas>
@@ -20,14 +29,19 @@
  * Mozilla https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 
 */
+var width = 320;
+var height = 240;
+var trigger = 60000;
+
 var constraints = {
     video: {
         frameRate: { ideal: 15, max: 30 },
-        width: { min: 240, ideal: 320 },
-        height: { min: 240, ideal: 240 },
+        width: { min: height, ideal: width },
+        height: { min: height, ideal: height },
         facingMode: "user" 
     }
-}
+};
+/*
 var promise = navigator.mediaDevices.getUserMedia(constraints);
 promise.then(function(mediaStream) {
     var video = document.createElement("video");
@@ -39,14 +53,31 @@ promise.then(function(mediaStream) {
     };
 })
 .catch(function(err) { console.log(err.name + ": " + err.message); });
+*/
+
+function playVideo() {
+    var video = document.createElement("video");
+    video.src = 'demo.mp4';
+    video.loop = true;
+    video.onloadedmetadata = function(e) {
+        video.play();
+        startFrameDifferencer(video);
+    };
+    video.autoPlay = true;
+}
+
+playVideo();
 
 var dinterval;
 
 var currentFrame = document.createElement("canvas");
 var lastFrame    = document.createElement("canvas");
+var callBack = null;
+
 
 function startFrameDifferencer(video) {
     //var video = document.querySelector('video');
+    var runSumDom = document.getElementById('runsum');   
     var canvas = document.querySelector('canvas');
     var context = canvas.getContext('2d');
     var currentContext = currentFrame.getContext('2d');
@@ -61,17 +92,72 @@ function startFrameDifferencer(video) {
         var od = outpix.data;
         var mix = 0.5;
         var imix = 1.0 - mix;
+        var cdc = 0;
+        var ldc = 0;
+        var o = 0;
+        var runsum = 0;
+        var diff;
         for (var i = 0 ; i < od.length ; i+=4) {
-            od[i+0] = (od[i+0]*mix + imix*  ( cd[i+0] - ld[i+0] )) % 255; 
-            od[i+1] = (od[i+0]*mix + imix * ( cd[i+1] - ld[i+1] )) % 255; 
-            od[i+2] = (od[i+0]*mix + imix * ( cd[i+2] - ld[i+2] )) % 255; 
+            ldc = ld[i+0] + ld[i+1] + ld[i + 2];
+            cdc = cd[i+0] + cd[i+1] + cd[i + 2];
+            diff = cdc - ldc;
+            o = (od[i+2]*mix + imix * ( diff*diff>>9 )) % 255;
+            od[i+0] = o;
+            od[i+1] = o;
+            od[i+2] = o;            
             od[i+3] = cd[i+3];
+            runsum += o;
         }
         outpix.data = od;
         lastContext.putImageData(current,0,0);
         context.putImageData(outpix,0,0);
+        runSumDom.textContent = ""+runsum;
+        if (callBack != null) {
+            callBack(runsum,od);
+        }
     },1000/30.0);
 }
+
+// Boxes cuts the area into 64 boxes and then uses the callback
+function boxes(runsum,od,callBack) {
+    var b = new Array(64).fill(0);
+    var x;
+    var y;
+    var nx;
+    var ny;
+    var pixels = od.length / 4;
+    for (var i = 0; i < pixels ; i++) {
+        x = i % width;
+        y = Math.floor(i / width);
+        nx = Math.floor(8.0 * x / width);
+        ny = Math.floor(8.0 * y / height);
+        b[nx + 8 * ny] += od[i*4+0];
+    }
+    if (callBack!=null) {
+        callBack(runsum,od,b);
+    }
+}
+
+function printBoxes(runsum,od,b) {
+    for (var i = 0 ; i < b.length; i++) {
+        if (b[i] >= trigger) {
+            console.log(i+" "+b[i]);
+        }
+    }
+}
+
+callBack = function(runsum,od) {
+    boxes(runsum,od,printBoxes);
+};
+
+window.addEventListener("load", function() {
+    console.log("onload");
+    var sensitivity = document.getElementById("sensitivity");
+    sensitivity.addEventListener("change", function(e) {
+        trigger = this.value;
+        console.log(trigger);
+    });
+});
 
     </script>        
   </body>
