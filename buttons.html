@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Magic!</title>
+    <style>
+#multibuttonpanel {
+        width: 100%;
+       height: 75%;
+}
+#sliderpanel {
+        width: 100%;
+       height: 25%;
+}
+
+
+html, body {
+   height: 100%;
+   width: 100%;
+   margin: 0;
+   padding: 0;
+}
+</style>
+        <script src="./www.charlie-roberts.com/interface/build/interface.js"></script>
+
+    <script src="./www.charlie-roberts.com/gibberish/build/gibberish.js"></script>
+  </head>
+    <body>
+    <div id="multibuttonpanel">
+    </div>
+    <div id="sliderpanel">
+    </div>
+    <script>
+/* Some ideas were taken from
+
+ * Mozilla https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+
+*/
+
+
+
+
+
+
+
+window.addEventListener("load", function() {
+    console.log("onload");
+
+    Gibberish.init();
+    Gibberish.Time.export();
+    Gibberish.Binops.export();
+    
+    var polySynth = new Gibberish.Synth2({ maxVoices:4, waveform:'PWM', attack:ms(1), decay:ms(500) }).connect();
+        
+    var synthNote = function(runsum,od,b) {
+        for (var i = 0 ; i < b.length; i++) {
+            if (b[i] >= trigger) {
+                polySynth.note(40+i*100);
+            }
+        }
+    };
+
+    /* stolen from http://www.charlie-roberts.com/interface/ by Charlie Roberts */
+    var a = new Interface.Panel({ container:("#multibuttonpanel") });
+    var multiButton = new Interface.MultiButton({
+        row:8, columns:8,
+        bounds:[.05,.05,.9,.8],
+        onvaluechange : function(row, col, value) {
+            multiButtonLabel
+                .setValue( 'row : ' + row + ' , col : ' + col + ' , value : ' + value);
+            polySynth.note(20 + 10*col + 40*row);
+        },
+    });
+    multiButton.mode = "contact";
+    console.log(multiButton);
+    var multiButtonLabel = new Interface.Label({ 
+        bounds:[.05,.9, .9, .1],
+        hAlign:"left",
+        value:""
+    });
+    
+    a.background = 'black';
+    a.add(multiButton, multiButtonLabel);
+    
+    var sliderPanel = new Interface.Panel({ container:document.querySelector("#sliderpanel") });            
+    var multiSlider = new Interface.MultiSlider({ 
+        count:15,
+        bounds:[.05,.05,.9,.8],
+        onvaluechange : function(number, value) {
+            multiSliderLabel.setValue( 'num : ' + number + ' , value : ' + value);
+        }
+    });
+
+    var multiSliderLabel = new Interface.Label({ 
+        bounds:[.05, .9, .9, .1],
+        hAlign:"left",
+        value:" ",
+    });
+
+    sliderPanel.background = 'black';
+    sliderPanel.add(multiSlider, multiSliderLabel);
+    
+    
+    console.log("Done on load");
+});
+
+
+
+    </script>        
+  </body>
+</html>
