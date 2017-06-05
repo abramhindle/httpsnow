@@ -115,12 +115,12 @@ window.addEventListener("load", function() {
              name:"GrainClampMin",
              key: "min",
              min: -1.0,
-             max: 1.0,
+             max: -0.5,
             },
             {target: clampGrain,
              name:"GrainClampMax",
              key: "max",
-             min: -1.0,
+             min: 0.0,
              max: 1.0,
             },
             {target: b,
@@ -181,6 +181,14 @@ window.addEventListener("load", function() {
     console.log("Done on load");
 });
 
+// take the slide defs and produce an array
+function randomSettings(sliderDef) {
+    return sliderDef.map( function(def) {
+        var range = def.max - def.min;
+        return Math.random() * range + def.min;
+    });
+}
+
 function setupSliders(sliderDef) {
     var sliderPanel = new Interface.Panel({ container:document.querySelector("#sliderpanel") });
     var width = 1.0 / sliderDef.length;
@@ -196,13 +204,16 @@ function setupSliders(sliderDef) {
         return slider;
     });
     sliderPanel.add(...sliders);
-
+    sd = sliderDef;
     console.log("Sliders added!");
     
     /* stolen from http://www.charlie-roberts.com/interface/ by Charlie Roberts */
     var a = new Interface.Panel({ container:("#multibuttonpanel") });
-    var settings = new Array(sliderDef.length);
+    var settings = Array(sliderDef.length);
     settings.fill([]);
+    settings = settings.map( function(i) { return randomSettings( sliderDef ); } );
+    console.log(sliderDef.length);
+    console.log(settings);
     var multiButton = new Interface.MultiButton({
         rows:2, columns:sliderDef.length,
         bounds:[.0,.0,1.0,.8],
