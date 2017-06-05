@@ -2,6 +2,15 @@
 <html>
   <head>
     <title>Magic!</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Magic Cellphone">
+    <meta name="msapplication-TileImage" content="128x128.png">
+    <meta name="msapplication-TileColor" content="#2F3BA2">
+
+    <link rel="apple-touch-icon" href="128x128.png">
+
     <style>
 #canvas {
         width: 100%;
@@ -163,7 +172,7 @@ window.addEventListener("load", function() {
     Gibberish.Time.export();
     Gibberish.Binops.export();
     
-    var polySynth = new Gibberish.Synth2({ maxVoices:4, waveform:'PWM', attack:ms(1), decay:ms(500) }).connect();
+    var polySynth = new Gibberish.Synth2({ maxVoices:16, waveform:'PWM', attack:ms(1), decay:ms(500) }).connect();
     
     //var polySynth = new Gibberish.PolySynth({ 
     //    attack: 20,
@@ -187,7 +196,15 @@ window.addEventListener("load", function() {
 });
 
 
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker
+           .register('/sw.js')
+           .then(function() { console.log("Service Worker Registered"); });
+} else {
+    console.log("No serviceWorker");
+}
 
-    </script>        
+</script>
+    
   </body>
 </html>

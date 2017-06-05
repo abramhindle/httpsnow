@@ -1,0 +1,13 @@
+{
+  "name": "Magic Cellphone",
+  "short_name": "Magic",
+  "icons": [{
+    "src": "128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }],
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#2F3BA2"
+}
