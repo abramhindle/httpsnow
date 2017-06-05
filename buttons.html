@@ -5,11 +5,11 @@
     <style>
 #multibuttonpanel {
         width: 100%;
-       height: 75%;
+       height: 25%;
 }
 #sliderpanel {
         width: 100%;
-       height: 25%;
+       height: 75%;
 }
 
 
@@ -38,8 +38,6 @@ html, body {
 
 
 
-
-
 Gibberish.Step = function() {
       Gibberish.extend(this, {
         name:'step',
@@ -57,6 +55,8 @@ Gibberish.Step = function() {
 };
 Gibberish.Step.prototype = Gibberish._oscillator;
 
+b = null;
+
 
 window.addEventListener("load", function() {
     console.log("onload");
@@ -64,34 +64,170 @@ window.addEventListener("load", function() {
     Gibberish.Time.export();
     Gibberish.Binops.export();
     q = new Gibberish.Step(1.0,0.0);
-    //q = 0;
-    /*
-    var polySynth = new Gibberish.Synth2({ maxVoices:4, waveform:'PWM', attack:ms(1), decay:ms(500) }).connect();
+    
+    
+    var trumpet = new Gibberish.Sampler('./www.charlie-roberts.com/gibberish/resources/trumpet.wav');
+    trumpet.onload = function() {
+        trumpet.loops = true;        
+        b = new Gibberish.Granulator({ 
+            buffer:trumpet.getBuffer(),
+            grainSize:1000,
+            speedMin: -2,
+            speedMax: 2,
+        });
+        console.log(b);
+        b.amp = 1.0;
+        k = new Gibberish.Bus();
+        minv = new Gibberish.Step(1.0,200);
+        var modulator = new Gibberish.Sine(10.0,20);
+        e = new Gibberish.Sine(
+            Add(Add(20,minv),
+                q,
+                new Gibberish.Sine(
+                    Add(21,
+                        modulator), //Sine Freq
+                    minv)),
+            100.0); // e.amp
         
-    var synthNote = function(runsum,od,b) {
-        for (var i = 0 ; i < b.length; i++) {
-            if (b[i] >= trigger) {
-                polySynth.note(40+i*100);
-            }
-        }
+        
+        Clamp(e,-0.2,0.2).connect(k);
+        clipMul = Mul(Merge(b),1.0);
+        clampGrain = Clamp(clipMul ,-0.5,0.5);
+        clampMul = Mul(clampGrain,1.0);
+        clampMul.connect(k);
+        k.connect();
+        console.log("connected");
+        //setupSliders(clipMul,clampMul,e);
+        var sliderDef = [
+            {target: q,
+             name:"q",
+             key: "value",
+             min: 0.0,
+             max: 100.0
+            },
+            {target: clipMul,
+             name:"Clip Mul",
+             key: 1,
+             min: 0.0,
+             max: 10.0
+            },
+            {target: clampGrain,
+             name:"GrainClampMin",
+             key: "min",
+             min: -1.0,
+             max: 1.0,
+            },
+            {target: clampGrain,
+             name:"GrainClampMax",
+             key: "max",
+             min: -1.0,
+             max: 1.0,
+            },
+            {target: b,
+             key: "amp",
+             min: 0,
+             max: 2,
+            },
+            {target: b,
+             key: "speed",
+             min: 0.01,
+             max: 10,
+            },
+            {target: b,
+             key: "grainSize",
+             min: 10,
+             max: 2000,
+            },
+            {target: b,
+             key: "position",
+             min: 0,
+             max: 1,
+            },
+            {target: e,
+             key: "amp",
+             name: "sineamp",
+             min: 0,
+             max: 1000,
+            },
+            //minv = new Gibberish.Step(1.0,200);
+            {target: minv,
+             key: "value",
+             name: "CenterFreq",
+             min: 20,
+             max: 1000,
+            },
+            //var modulator = new Gibberish.Sine(10.0,20);
+            {target: modulator,
+             key: "frequency",
+             name: "FRange",
+             min: 0.1,
+             max: 40,
+            },
+            {target: modulator,
+             key: "amp",
+             name: "FAmp",
+             min: 0.1,
+             max: 50,
+            },
+
+
+        ];
+        setupSliders(sliderDef);
+        
+
+        
     };
-    */
+
+    console.log("Done on load");
+});
+
+function setupSliders(sliderDef) {
+    var sliderPanel = new Interface.Panel({ container:document.querySelector("#sliderpanel") });
+    var width = 1.0 / sliderDef.length;
+    var sliders = sliderDef.map( function(def,i) {
+        var slider = new Interface.Slider({
+            target: def.target, key:def.key,
+            label: def.name || def.key,
+            min: def.min,
+            max: def.max,
+            bounds:[width*i,0,width,1.0],
+            isVertical : true,
+        });
+        return slider;
+    });
+    sliderPanel.add(...sliders);
+
+    console.log("Sliders added!");
+    
     /* stolen from http://www.charlie-roberts.com/interface/ by Charlie Roberts */
     var a = new Interface.Panel({ container:("#multibuttonpanel") });
-    b = null;
+    var settings = new Array(sliderDef.length);
+    settings.fill([]);
     var multiButton = new Interface.MultiButton({
-        row:8, columns:8,
-        bounds:[.05,.05,.9,.8],
-        onvaluechange : function(row, col, value) {
-            multiButtonLabel
-                .setValue( 'row : ' + row + ' , col : ' + col + ' , value : ' + value);
-            //polySynth.note(20 + 10*col + 40*row);
-            if (b!=null) {
-                b.position = (col * 8 + row) / 64.0;
+        rows:2, columns:sliderDef.length,
+        bounds:[.0,.0,1.0,.8],
+        onvaluechange : function(row, col, value) {            
+            if (row == 0) {
+                // set
+                var newSettings = sliderDef.map(function(def) {
+                    return def.target[def.key];
+                });
+                settings[col] = newSettings;
+                multiButtonLabel.setValue("Storing "+newSettings.join(","));
+            } else {
+                // retrieve
+                var ourSettings = settings[col];
+                if (ourSettings.length != sliderDef.length) {
+                    multiButtonLabel.setValue("Nothing set! Nothing loaded!");
+                    return;
+                }
+                var newSettings = sliderDef.map(function(def,i) {
+                    def.target[def.key] = ourSettings[i];
+                    sliders[i].setValue( ourSettings[i] );
+                    return def.target[def.key];
+                });
+                multiButtonLabel.setValue("Loading "+newSettings.join(","));
             }
-            //q.value = 10*(col * 8 + row);
-            q.value = 2*(col * 8 + row);
-            //console.log(q);
         },
     });
     multiButton.mode = "contact";
@@ -104,61 +240,43 @@ window.addEventListener("load", function() {
     
     a.background = 'black';
     a.add(multiButton, multiButtonLabel);
+
+    console.log("Store/Load Added");
+
+};
+
+function oldSetupSliders(clipMul,clampMul,sinOsc) {
     
-    var sliderPanel = new Interface.Panel({ container:document.querySelector("#sliderpanel") });            
-    var multiSlider = new Interface.MultiSlider({ 
-        count:15,
-        bounds:[.05,.05,.9,.8],
-        onvaluechange : function(number, value) {
-            multiSliderLabel.setValue( 'num : ' + number + ' , value : ' + value);
+    var sliderPanel = new Interface.Panel({ container:document.querySelector("#sliderpanel") });
+    
+    
+    var mulSlider = new Interface.Slider({
+        target: clipMul, key:1,
+        label:'Multiply',
+        min: 0, max: 10.0,
+        bounds:[0.05,0.05,0.25,0.9],
+        isVertical : true,
+    });
+    var mixSlider = new Interface.Slider({
+        label:'Mix',
+        min: 0, max: 1.0,
+        bounds:[0.3,0.05,.25,0.9],
+        isVertical : true,
+        onvaluechange : function() {
+            var value = this.value;
+            console.log(value);
+            //console.log(this);
+            clampMul[1] = value;
+            sinOsc.amp = 1.0 - value;
         }
     });
 
-    var multiSliderLabel = new Interface.Label({ 
-        bounds:[.05, .9, .9, .1],
-        hAlign:"left",
-        value:" ",
-    });
 
+    
     sliderPanel.background = 'black';
-    sliderPanel.add(multiSlider, multiSliderLabel);
-    
-    var trumpet = new Gibberish.Sampler('./www.charlie-roberts.com/gibberish/resources/trumpet.wav');
-    trumpet.onload = function() {
-        trumpet.loops = true;        
-        b = new Gibberish.Granulator({ 
-            buffer:trumpet.getBuffer(),
-            grainSize:1000,
-            speedMin: -2,
-            speedMax: 2,
-        });
-        //b.mod('position', new Gibberish.Sine(.1, .45), '+');
-        //b.connect();
-        console.log(b);
-        b.amp = 1.0;
-        k = new Gibberish.Bus();
-        e = new Gibberish.Sine(Add(220,q,new Gibberish.Sine(Add(21,new Gibberish.Sine(10.0,20)), 200)), 100.0);
-        Clamp(e,-0.2,0.2).connect(k);
-        //Clamp(Merge(trumpet),-0.0001,0.0001).connect();
-        Clamp(Mul(10,Mod(Mul(128,Merge(b)),64)),-0.5,0.5).connect(k);
-        k.connect();
-        //c = Clamp(Mul(100,k),-0.5,0.5);
-        //c = Mul(100.0,Clamp(k,-0.01,0.01));
-        //r = new Gibberish.Reverb({input:c, roomSize:.5, wet:1, dry:.25}).connect();
-        //c = Gibberish.Binops.Clamp(b,-0.01,0.01);//{input:b,min:0.01,max:-0.01});
-        //c.connect();
-        //trumpet.note(1);
-        //console.log(c);
-        console.log("connected");
-    };
-    //mod2 = new Gibberish.Sine(0.5, 50); 
-    //sin = new Gibberish.Sine( Add(60,Clamp(mod2,20,40)), .25 ).connect()
-    
+    sliderPanel.add(mulSlider,mixSlider);
 
-    console.log("Done on load");
-});
-
-
+};
 
     </script>        
   </body>
