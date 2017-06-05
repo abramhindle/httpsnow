@@ -41,22 +41,19 @@ html, body {
 
 
 Gibberish.Step = function() {
-  
-  Gibberish.extend(this, {
-    name:'step',
-    properties: {
-        amp:1,
-        value:0.0,
-    },
-    
-      callback : function(amp, value){ 
-          return amp * value;
-      },
-  });
-  
-  this.init();
-  this.oscillatorInit();
-  this.processProperties(arguments);  
+      Gibberish.extend(this, {
+        name:'step',
+        properties: {
+            amp:1,
+            value:0.0,
+        },        
+        callback : function(amp, value){ 
+            return amp * value;
+        },
+    });
+    this.init();
+    this.oscillatorInit();
+    this.processProperties(arguments);  
 };
 Gibberish.Step.prototype = Gibberish._oscillator;
 
