@@ -22,7 +22,7 @@ html, body {
 </style>
         <script src="./www.charlie-roberts.com/interface/build/interface.js"></script>
 
-    <script src="./www.charlie-roberts.com/gibberish/build/gibberish.js"></script>
+    <script src="./gibberish3.js"></script>
   </head>
     <body>
     <div id="multibuttonpanel">
@@ -36,24 +36,18 @@ html, body {
 
 */
 
+g = Gibberish.genish
 
+/* From Charlie Roberts */
 
-Gibberish.Step = function() {
-      Gibberish.extend(this, {
-        name:'step',
-        properties: {
-            amp:1,
-            value:0.0,
-        },        
-        callback : function(amp, value){ 
-            return amp * value;
-        },
-    });
-    this.init();
-    this.oscillatorInit();
-    this.processProperties(arguments);  
-};
-Gibberish.Step.prototype = Gibberish._oscillator;
+Gibberish.Var = initialValue => {
+  const ugen = Object.create( Gibberish.prototypes.ugen )
+  
+  const graph = g.param( initialValue )
+  
+  return Gibberish.factory( ugen, graph, 'var' )
+}
+
 
 b = null;
 
@@ -61,40 +55,54 @@ b = null;
 window.addEventListener("load", function() {
     console.log("onload");
     Gibberish.init();
-    Gibberish.Time.export();
-    Gibberish.Binops.export();
-    q = new Gibberish.Step(1.0,0.0);
+    q = Gibberish.Var(0.0);
     
-    
-    var trumpet = new Gibberish.Sampler('./www.charlie-roberts.com/gibberish/resources/trumpet.wav');
+    var trumpet = Gibberish.instruments.Sampler({
+        filename:'./www.charlie-roberts.com/gibberish/resources/trumpet.wav'
+    }).connect();
     trumpet.onload = function() {
-        trumpet.loops = true;        
-        b = new Gibberish.Granulator({ 
-            buffer:trumpet.getBuffer(),
-            grainSize:1000,
-            speedMin: -2,
-            speedMax: 2,
+        trumpet.loops = true;
+        trumpet.note(1);
+        //trumpet.loops = true;
+        return;
+        trumpet.loops = true;
+        b = Gibberish.fx.Shuffler({ 
+            input:trumpet,
+            rate:2205,
+            reverseChance:.5,
+            repitchChance: .5,
+            repitchMin: 0.25,
+            repitchMax: 5.0,
+            mix:1
         });
-        console.log(b);
-        b.amp = 1.0;
-        k = new Gibberish.Bus();
-        minv = new Gibberish.Step(1.0,200);
-        var modulator = new Gibberish.Sine(10.0,20);
-        e = new Gibberish.Sine(
-            Add(Add(20,minv),
-                q,
-                new Gibberish.Sine(
-                    Add(21,
-                        modulator), //Sine Freq
-                    minv)),
-            100.0); // e.amp
+        trumpet.connect();
+        trumpet.note(1);
+        //b.connect();
+        //trumpet.note(1);
+        return;
+        
+        k = Bus();
+        minv = Gibberish.Var(200);
+        var modulator = Sine({frequency:10.0,gain:20});
+        e = Sine({
+            frequency:Add(Add(20,minv),
+                          q,
+                          Sine({
+                              frequency:Add(21, modulator), //Sine Freq
+                              gain:minv
+                          })
+                         ),
+            gain:100.0
+        }); //e.gain
         
         
-        Clamp(e,-0.2,0.2).connect(k);
-        clipMul = Mul(Merge(b),1.0);
+        Clamp({input:e,min:-0.2,max:0.2}).connect(k);
+        clipMul = Gibberish.binops.Mul(b,1.0);
         clampGrain = Clamp(clipMul ,-0.5,0.5);
-        clampMul = Mul(clampGrain,1.0);
-        clampMul.connect(k);
+        clampMul = Gibberish.binops.Mul(clampGrain,1.0);
+        // why connect is missing?
+        Gibberish.output.inputs.push( clampMul );
+
         k.connect();
         console.log("connected");
         //setupSliders(clipMul,clampMul,e);
