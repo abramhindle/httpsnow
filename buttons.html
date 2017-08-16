@@ -59,13 +59,10 @@ window.addEventListener("load", function() {
     
     var trumpet = Gibberish.instruments.Sampler({
         filename:'./www.charlie-roberts.com/gibberish/resources/trumpet.wav'
-    }).connect();
+    });
     trumpet.onload = function() {
-        trumpet.loops = true;
-        trumpet.note(1);
-        //trumpet.loops = true;
-        return;
-        trumpet.loops = true;
+        trumpet.loops = 1;
+        /*
         b = Gibberish.fx.Shuffler({ 
             input:trumpet,
             rate:2205,
@@ -74,13 +71,10 @@ window.addEventListener("load", function() {
             repitchMin: 0.25,
             repitchMax: 5.0,
             mix:1
-        });
-        trumpet.connect();
-        trumpet.note(1);
+        });*/
         //b.connect();
-        //trumpet.note(1);
-        return;
-        
+        trumpet.note(1);
+        b = trumpet;
         k = Bus();
         minv = Gibberish.Var(200);
         var modulator = Sine({frequency:10.0,gain:20});
@@ -94,17 +88,18 @@ window.addEventListener("load", function() {
                          ),
             gain:100.0
         }); //e.gain
-        
-        
-        Clamp({input:e,min:-0.2,max:0.2}).connect(k);
-        clipMul = Gibberish.binops.Mul(b,1.0);
+        //clipSine = Clamp({input:e,min:-0.2,max:0.2}).connect(k);
+        clipSine = Clamp(e,-0.05,0.05).connect(k);        
+        clipMul = Gibberish.binops.Mul(b,q);        
         clampGrain = Clamp(clipMul ,-0.5,0.5);
         clampMul = Gibberish.binops.Mul(clampGrain,1.0);
         // why connect is missing?
         Gibberish.output.inputs.push( clampMul );
-
+        //k.push( clampMul );
         k.connect();
         console.log("connected");
+        
+        
         //setupSliders(clipMul,clampMul,e);
         var sliderDef = [
             {target: q,
@@ -117,8 +112,9 @@ window.addEventListener("load", function() {
              name:"Clip Mul",
              key: 1,
              min: 0.0,
-             max: 10.0
+             max: 1000
             },
+            /*
             {target: clampGrain,
              name:"GrainClampMin",
              key: "min",
@@ -151,6 +147,7 @@ window.addEventListener("load", function() {
              min: 0,
              max: 1,
             },
+            */ 
             {target: e,
              key: "amp",
              name: "sineamp",
