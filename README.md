@@ -20,12 +20,12 @@ installation
 
 Please checkout to ~/projects/httpsnow/
 
-  mkdir -p ~/projects/
-  cd ~/projects/
-  git checkout https://github.com/abramhindle/httpsnow
-  cd httpsnow
-  make install
-  # now put httpsnow somewhere
+    mkdir -p ~/projects/
+    cd ~/projects/
+    git checkout https://github.com/abramhindle/httpsnow
+    cd httpsnow
+    make install
+    # now put httpsnow somewhere
 
 Now you have to setup firefox and chrome for some reason because they ignore these certs.
 
@@ -50,8 +50,8 @@ Install httpsnow into your PATH somewhere.
 
 Then in a directory you want to serve run:
 
-  $ httpsnow
-  https://localhost:44330/
+    $ httpsnow
+    https://localhost:44330/
 
 And click the link!
 
