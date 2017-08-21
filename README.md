@@ -32,6 +32,8 @@ Now you have to setup firefox and chrome for some reason because they ignore the
 chrome
 ======
 
+Works with Chrome 60 as far as I can tell.
+
 Go to settings -> advanced -> Manage Certificates -> Authorities -> import
 
 After "make install" install ~/projects/httpsnow/localhostCA.crt  into Authorities
