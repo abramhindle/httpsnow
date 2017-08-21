@@ -26,7 +26,7 @@ server.csr: server.key localhostCA.pem
 server.crt: server.csr localhostCA.pem
 	$(openssl) x509 -req -in server.csr -CA localhostCA.pem -CAkey localhostCA.key -CAcreateserial -out server.crt -days 3650 -sha256 -extfile v3.ext
 
-install: install.sh server.crt
+install: install.sh server.crt localhostCA.pem localhostCA.crt
 	$(bash) install.sh
 
 serve:
