@@ -1,3 +1,5 @@
+PATH=$(HOME)/projects/httpsnow/
+
 all: localhostCA.crt server.crt
 
 localhostCA.key:
@@ -22,8 +24,11 @@ server.csr: server.key localhostCA.pem
 server.crt: server.csr localhostCA.pem
 	openssl x509 -req -in server.csr -CA localhostCA.pem -CAkey localhostCA.key -CAcreateserial -out server.crt -days 3650 -sha256 -extfile v3.ext
 
+install: install.sh server.crt
+	bash install.sh
+
 serve:
-	openssl s_server -accept 44330 -cert server.crt -key server.key -WWW
+	openssl s_server -accept 44330 -cert $(PATH)/server.crt -key $(PATH)/server.key -WWW
 
 clean:
 	rm localhostCA.key  localhostCA.srl  server.csr localhostCA.crt  localhostCA.pem  server.crt  server.key

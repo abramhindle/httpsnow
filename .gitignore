@@ -1,0 +1,10 @@
+*.swp
+.*.swp
+localhostCA.crt
+localhostCA.key
+localhostCA.pem
+localhostCA.pfx
+localhostCA.srl
+server.crt
+server.csr
+server.key
