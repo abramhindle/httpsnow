@@ -8,8 +8,20 @@
         <script src="Pizzicato.js"></script>
     </head>
     <body>
+      <style>
+        #mixer {
+        height: 10em;
+        width: 100%;
+        }
+      </style>
+      <input class="autojs" min="0" max="1" step="0.01" value="1"
+             id="mixer" name="mixer"
+             type="range"/><br/>
       <input class="autojs" min="0" max="1" step="0.01" value="1" name="mainSound.volume"
-             type="range">
+             type="range"/><br/>
+      <input class="autojs" min="0" max="1" step="0.01" value="1" name="pinkSound.volume"
+             type="range"/>
+      <script src="autojs.js"></script>
       <script src="simple.js"></script>    
     </body>
 </html>

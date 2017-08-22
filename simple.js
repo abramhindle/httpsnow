@@ -1,7 +1,9 @@
+// require("./autojs.js");
+
 var mainSound = new Pizzicato.Sound(
     { source: 'file',
       options: {
-          path: './2channel.wav',
+          path: './2channel.ogg',
           loop: true
       }
     },
@@ -10,13 +12,30 @@ var mainSound = new Pizzicato.Sound(
         mainSound.play();
     });
 
-var autos = {
-    mainSound: mainSound
+var pinkSound = new Pizzicato.Sound(
+    { source: 'file',
+      options: {
+          path: './heavy-pink.ogg',
+          volume: 0.0,
+          loop: true          
+      }
+    },
+    function() {
+        console.log("Main Sound Loaded");
+        pinkSound.volume = 0.0;
+        pinkSound.play();
+    });
+
+function mixer(mix) {
+    mainSound.volume = 1.0 - mix;
+    pinkSound.volume = mix;
+    return mix;
 }
 
-var elms = document.getElementsByClassName("autojs");
-for (var i = 0; i < elms.length; i++) {
-    let name = elms[i].name;
-    
-    
+var autos = {
+    mixer:       mixer,
+    mainSound: mainSound,
+    pinkSound: pinkSound
 }
+
+autoJSinstallCallbacks(autos);
