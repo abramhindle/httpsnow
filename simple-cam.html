@@ -148,7 +148,80 @@ function boxes(runsum,od,callBack) {
         b[nx + 8 * ny] += od[i*4+0];
     }
     if (callBack!=null) {
-        callBack(runsum,od,b);
+        return callBack(runsum,od,b);
+    } else {
+        return b;
+    }
+}
+
+function colsum(arr,w,h) {
+    var b = new Array(w).fill(0);
+    for (var i = 0; i < w ; i++) {
+        for (var j = 0; j < h ; j++) {
+            b[i] += arr[w*j + i];
+        }        
+    }
+    return b;
+}
+
+function rowsum(arr,w,h) {
+    var b = new Array(w).fill(0);
+    for (var i = 0; i < h ; i++) {
+        for (var j = 0; j < w ; j++) {
+            b[i] += arr[w*i + j];
+        }        
+    }
+    return b;
+}
+function average(arr) {
+    var bsum = arr.reduce((a,c) => a + c, 0);
+    return bsum / arr.length;
+}
+function argmax(arr) {
+    var x = arr[0];
+    var xi = 0;
+    for (var i = 1; i < arr.length; i++) {
+        if (x < arr[i]) {
+            xi = i;
+            x = arr[i];
+        }
+    }
+    return xi;
+}
+function maxi(arr) {
+    var x = arr[0];
+    var xi = 0;
+    for (var i = 1; i < arr.length; i++) {
+        if (x < arr[i]) {
+            xi = i;
+            x = arr[i];
+        }
+    }
+    return [xi,x];
+}
+
+function metrics(runsum,od,callBack) {
+    var b = boxes(runsum,od,null);
+    var bcols = colsum(b,8,8);
+    var brows = rowsum(b,8,8);
+    var bsum = b.reduce((a,c) => a + c, 0);
+    var bavg = bsum / b.length;
+    var output = {
+        boxes: b,
+        sum: bsum,
+        avg: bavg,
+        cols: bcols,
+        rows: brows,
+        avgcols: average(bcols),
+        avgrows: average(brows),
+        maxcol: maxi(bcols),
+        maxrow: maxi(brows)
+    };
+    console.log(output.maxcol + " " + output.maxrow);
+    if (callBack!=null) {
+        return callBack(runsum,od,output);
+    } else {
+        return output;
     }
 }
 
@@ -169,7 +242,9 @@ function meansum(runsum,od,callBack) {
     }
     ms /= 256*pixels;
     if (callBack!=null) {
-        callBack(runsum,od,ms);
+        return callBack(runsum,od,ms);
+    } else {
+        return ms;
     }
 }
 
@@ -254,7 +329,8 @@ window.addEventListener("load", function() {
     //    boxes(runsum,od,synthNote);
     //};
     callBack = function(runsum,od) {
-        meansum(runsum,od,mixit);
+        //meansum(runsum,od,mixit);
+        metrics(runsum,od,null);
     }
 
     
