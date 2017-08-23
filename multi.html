@@ -258,6 +258,42 @@ function printBoxes(runsum,od,b) {
     }
 }
 
+var oggnames = [
+    "./oggs/rand-tux-21604.ogg",
+    "./oggs/rand-tux-14661.ogg",
+    "./oggs/rand-tux-23138.ogg",
+    "./oggs/rand-tux-4723.ogg",
+    "./oggs/rand-tux-21556.ogg",
+    "./oggs/rand-tux-6595.ogg",
+    "./oggs/rand-tux-6833.ogg",
+    "./oggs/rand-tux-28198.ogg",
+    "./oggs/rand-tux-19291.ogg",
+    "./oggs/rand-tux-23776.ogg",
+    "./oggs/rand-tux-7685.ogg",
+    "./oggs/rand-tux-1631.ogg",
+    "./oggs/rand-tux-24954.ogg",
+    "./oggs/rand-tux-20943.ogg",
+    "./oggs/rand-tux-28476.ogg",
+    "./oggs/rand-tux-20018.ogg",
+    "./oggs/rand-tux-31028.ogg",
+    "./oggs/rand-tux-15009.ogg",
+    "./oggs/rand-tux-8484.ogg",
+    "./oggs/rand-tux-358.ogg",
+    "./oggs/rand-tux-9291.ogg",
+    "./oggs/rand-tux-18615.ogg",
+    "./oggs/rand-tux-7493.ogg",
+    "./oggs/rand-tux-18410.ogg",
+    "./oggs/rand-tux-1431.ogg",
+    "./oggs/rand-tux-4356.ogg",
+    "./oggs/rand-tux-424.ogg",
+    "./oggs/rand-tux-29060.ogg",
+    "./oggs/rand-tux-4964.ogg",
+    "./oggs/rand-tux-22727.ogg",
+    "./oggs/rand-tux-27515.ogg",
+    "./oggs/rand-tux-12927.ogg",
+    "./oggs/rand-tux-10053.ogg"
+];
+
 
 window.addEventListener("load", function() {
     console.log("onload");
@@ -278,32 +314,41 @@ window.addEventListener("load", function() {
     //    decay: ms(1000),
     //    pulsewidth: Add( .5, new Gibberish.Sine(.1, .45) ),
     //}).connect();
-    var mainSound = new Pizzicato.Sound(
-        { source: 'file',
-          options: {
-              path: './2channel.ogg',
-              loop: true
-          }
-        },
-        function() {
-            console.log("Main Sound Loaded");
-            mainSound.play();
-        });
-    
-    var pinkSound = new Pizzicato.Sound(
-        { source: 'file',
-          options: {
-              path: './heavy-pink.ogg',
-              volume: 0.1,
-              loop: true          
-          }
-        },
-        function() {
-            console.log("Main Sound Loaded");
-            pinkSound.volume = 0.0;
-            pinkSound.play();
-        });
-    
+
+    oggs = oggnames.map(function(filename) {
+        let v = new Pizzicato.Sound(
+            { source: 'file',
+              options: {
+                  path: filename,
+                  volume: 0.0,
+                  loop: true          
+              }
+            },
+            function() {
+                console.log(filename + " Sound Loaded");
+                v.volume = 0.0;
+                v.play();
+            });
+        return v
+    });
+
+
+    var volNote = function(runsum,od,b) {
+        for (var i = 0 ; i < b.length; i++) {
+            let x = b[i];
+            let expx = Math.exp(x-10);
+            let vol = 0.0;
+            if (x >= trigger) {
+                vol = 1.0;
+                let v = oggs[i%oggs.length].volume;
+                oggs[i%oggs.length].volume += 1.0; //= Math.min(1.0,oggs[i%oggs.length].volume + 1.0);
+            } else { 
+                oggs[i%oggs.length].volume *= 0.9;
+            }
+        }
+    };
+
+                        
     var synthNote = function(runsum,od,b) {
         for (var i = 0 ; i < b.length; i++) {
             if (b[i] >= trigger) {
@@ -312,7 +357,7 @@ window.addEventListener("load", function() {
         }
     };
     var mixit = function(runsum,od,mix) {
-        //console.log(mix);
+        console.log(mix);
         if (mix > 0.001) {
             mainSound.volume = 0.0;
             pinkSound.volume = 1.0;
@@ -323,15 +368,21 @@ window.addEventListener("load", function() {
         //mainSound.volume = Math.min(1.0,Math.max(0.0,(1.0-10*mix)));
         //pinkSound.volume = 1000*mix;
         return mix;
-    }
-    
+    } 
+    //callBack = function(runsum,od) {
+    //    boxes(runsum,od,synthNote);
+    //};
+   
     //callBack = function(runsum,od) {
     //    boxes(runsum,od,synthNote);
     //};
     callBack = function(runsum,od) {
-        meansum(runsum,od,mixit);
-        //metrics(runsum,od,null);
-    }
+        boxes(runsum,od,volNote);
+    };
+    //callBack = function(runsum,od) {
+    //    meansum(runsum,od,mixit);
+    //    //metrics(runsum,od,null);
+    //}
 
     
 });
