@@ -22,7 +22,7 @@ Please checkout to ~/projects/httpsnow/
 
     mkdir -p ~/projects/
     cd ~/projects/
-    git checkout https://github.com/abramhindle/httpsnow
+    git clone https://github.com/abramhindle/httpsnow
     cd httpsnow
     make install
     # now put httpsnow somewhere
@@ -42,6 +42,7 @@ Firefox
 =======
 
 Preferences -> Advanced -> Certificates -> View Certificates -> Authorities -> import
+Or go to Preferences and Search for Certificates, then -> View Certificates -> Authorities -> import
 
 After "make install" install ~/projects/httpsnow/localhostCA.crt  into Authorities
 
